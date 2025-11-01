@@ -120,7 +120,12 @@ export const MM_PER_CM = window.Core.Document.OfficeEditor.MM_PER_CM; // 10
 export const POINTS_PER_INCH = window.Core.Document.OfficeEditor.POINTS_PER_INCH; // 72
 export const POINTS_PER_CM = window.Core.Document.OfficeEditor.POINTS_PER_CM; // 28.3464566929133858
 
-export const LAYOUT_UNITS = window.Core.Document.OfficeEditor.LayoutUnits;
+export const LAYOUT_UNITS = window.Core?.Document?.OfficeEditor?.LayoutUnits || {
+  CM: 'cm',
+  MM: 'mm',
+  INCH: 'inch',
+  PHYSICAL_POINT: 'pt',
+};
 
 export const EDIT_OPERATION_SOURCE = window.Core.Document.OfficeEditor.EditOperationSource;
 

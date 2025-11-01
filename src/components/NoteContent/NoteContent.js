@@ -64,7 +64,7 @@ const NoteContent = ({
   isMultiSelectMode,
   handleMultiSelect,
   isGroupMember,
-  handleNoteClick = () => {},
+  handleNoteClick = () => { },
 }) => {
 
   const noteDateFormat = useSelector((state) => selectors.getNoteDateFormat(state));
@@ -445,6 +445,32 @@ const NoteContent = ({
       {header}
       {textPreview}
       {content}
+      {customizableUI && (
+        <div style={{ padding: '8px 12px', pointerEvents: 'auto' }}>
+          <Button
+            className="modular-ui-button"
+            label="Event"
+            onClick={(e) => {
+              e.stopPropagation();
+              // Send message to parent window to create event from annotation
+              const annotationData = {
+                id: annotation.Id,
+                contents: annotation.getContents(),
+                author: annotation['Author'],
+                pageNumber: annotation.getPageNumber(),
+                dateCreated: annotation['DateCreated'],
+                dateModified: annotation['DateModified'],
+              };
+
+              window.parent.postMessage({
+                type: 'createEventFromAnnotation',
+                annotation: annotationData,
+              }, '*');
+            }}
+          />
+        </div>
+      )}
+
     </div>
   );
 };
