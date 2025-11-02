@@ -37,6 +37,215 @@ import './NoteContent.scss';
 
 dayjs.extend(LocalizedFormat);
 
+// Component to display linked entities on annotations
+const LinkedEntitiesDisplay = ({ annotation }) => {
+  const annotationId = annotation?.Id || annotation?.id;
+
+  // Use a refresh counter to force re-renders when messages come in
+  // This way we always read directly from the annotation prop (single source of truth)
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Listen for optimistic updates and refresh messages
+  useEffect(() => {
+    const handleMessage = (event) => {
+      // Handle optimistic entity linking
+      if (event.data?.type === 'entityLinkedToAnnotation' && event.data?.annotationId === annotationId) {
+        const newEntity = event.data?.entity;
+        if (newEntity && annotation) {
+          // Optimistically add to annotation object (single source of truth)
+          const currentEntities = Array.isArray(annotation.LinkedEntities)
+            ? [...annotation.LinkedEntities]
+            : Array.isArray(annotation.linkedEntities)
+              ? [...annotation.linkedEntities]
+              : [];
+
+          const alreadyLinked = currentEntities.some((e) => e.edgeId === newEntity.edgeId || e.id === newEntity.id);
+          if (!alreadyLinked) {
+            const merged = [...currentEntities, newEntity];
+            annotation.LinkedEntities = merged;
+            annotation.linkedEntities = merged;
+            // Force re-render
+            setRefreshKey(prev => prev + 1);
+          }
+        }
+      }
+
+      // Handle refresh messages - just force a re-render
+      if (event.data?.type === 'linkedEntitiesRefreshed' || event.data?.type === 'linkedEntitiesUpdated') {
+        // If we received entities directly, update annotation immediately
+        if (event.data?.entitiesByAnnotation && annotation && annotationId) {
+          const entities = event.data.entitiesByAnnotation[annotationId];
+          // Update annotation object with new entities (even if empty array)
+          if (entities !== undefined) {
+            annotation.LinkedEntities = Array.isArray(entities) ? [...entities] : [];
+            annotation.linkedEntities = annotation.LinkedEntities;
+            // Force immediate re-render
+            setRefreshKey(prev => prev + 1);
+          } else if (event.data?.annotationId === annotationId) {
+            // Targeted update for this annotation, force re-render even if no entities provided
+            setRefreshKey(prev => prev + 1);
+          }
+        } else {
+          // Fallback: just force a re-render after a short delay
+          setTimeout(() => {
+            setRefreshKey(prev => prev + 1);
+          }, 50);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [annotationId, annotation]);
+
+  const handleUnlink = (edgeId, entityTitle) => {
+    if (window.confirm(`Unlink ${entityTitle || 'entity'} from this annotation?`)) {
+      // Optimistically remove from annotation object for instant UI feedback
+      if (annotation) {
+        const currentEntities = Array.isArray(annotation.LinkedEntities)
+          ? [...annotation.LinkedEntities]
+          : Array.isArray(annotation.linkedEntities)
+            ? [...annotation.linkedEntities]
+            : [];
+        const filtered = currentEntities.filter((entity) => entity.edgeId !== edgeId);
+        annotation.LinkedEntities = filtered;
+        annotation.linkedEntities = filtered;
+        setRefreshKey(prev => prev + 1);
+      }
+
+      // Then send the unlink request to parent
+      window.parent.postMessage({
+        type: 'unlinkEntityFromAnnotation',
+        edgeId: edgeId,
+        pdftronAnnotationId: annotation?.Id || annotation?.id,
+      }, '*');
+    }
+  };
+
+  const handleLinkClick = (e) => {
+    e.stopPropagation();
+    // Send message to parent window to create/link entity from annotation
+    const annotationData = {
+      id: annotation?.Id || annotation?.id,
+      contents: annotation?.contents || annotation?.Contents || '',
+      pageNumber: annotation?.PageNumber || annotation?.pageNumber || 0,
+    };
+
+    window.parent.postMessage({
+      type: 'createEntityFromAnnotation',
+      annotation: annotationData,
+    }, '*');
+  };
+
+  // Always read directly from annotation (single source of truth)
+  // The refreshKey forces a re-render when updated
+  const linkedEntities = annotation?.LinkedEntities || annotation?.linkedEntities || [];
+  const entitiesArray = Array.isArray(linkedEntities) ? linkedEntities : [];
+
+  return (
+    <div key={refreshKey} style={{ marginBottom: '8px', fontSize: '12px', color: '#666', borderTop: '1px solid #e5e7eb', paddingTop: '8px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+        <div style={{ fontWeight: 'bold', fontSize: '11px', textTransform: 'uppercase', color: '#9ca3af' }}>
+          Linked Entities
+        </div>
+        <button
+          onClick={handleLinkClick}
+          style={{
+            background: 'transparent',
+            border: '1px solid #e5e7eb',
+            borderRadius: '3px',
+            padding: '2px 6px',
+            fontSize: '10px',
+            cursor: 'pointer',
+            color: '#3b82f6',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '2px',
+          }}
+          title="Link to Entity"
+        >
+          <span>+</span>
+        </button>
+      </div>
+      {entitiesArray.length > 0 ? (
+        entitiesArray.map((entity, index) => {
+          // Generate URL based on entity type
+          let entityUrl = '';
+          if (entity.type === 'event') {
+            entityUrl = `/events/${entity.id}`;
+          } else if (entity.type === 'node') {
+            entityUrl = `/nodes/${entity.id}`;
+          } else if (entity.type === 'issue') {
+            entityUrl = `/lydia/${entity.id}`;
+          }
+
+          return (
+            <div key={`${entity.edgeId || entity.id || index}`} style={{ marginLeft: '8px', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ color: '#3b82f6' }}>•</span>
+              {entityUrl ? (
+                <a
+                  href={entityUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: '#3b82f6',
+                    textDecoration: 'none',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.textDecoration = 'underline';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.textDecoration = 'none';
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  {entity.title || 'Untitled'}
+                </a>
+              ) : (
+                <span>{entity.title || 'Untitled'}</span>
+              )}
+              <span style={{ color: '#9ca3af', fontSize: '11px' }}>({entity.type})</span>
+              {entity.edgeId && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUnlink(entity.edgeId, entity.title);
+                  }}
+                  style={{
+                    marginLeft: '4px',
+                    padding: '2px 6px',
+                    fontSize: '10px',
+                    background: 'transparent',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '3px',
+                    cursor: 'pointer',
+                    color: '#ef4444',
+                  }}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          );
+        })
+      ) : (
+        <div style={{ fontSize: '11px', color: '#9ca3af', fontStyle: 'italic', marginLeft: '8px' }}>
+          No linked entities
+        </div>
+      )}
+    </div>
+  );
+};
+
+LinkedEntitiesDisplay.propTypes = {
+  annotation: PropTypes.object.isRequired,
+};
+
 const propTypes = {
   annotation: PropTypes.object.isRequired,
   isEditing: PropTypes.bool,
@@ -66,6 +275,7 @@ const NoteContent = ({
   isGroupMember,
   handleNoteClick = () => { },
 }) => {
+  const annotationId = annotation?.Id || annotation?.id;
 
   const noteDateFormat = useSelector((state) => selectors.getNoteDateFormat(state));
   const iconColor = useSelector((state) => selectors.getIconColor(state, mapAnnotationToKey(annotation), shallowEqual));
@@ -447,27 +657,7 @@ const NoteContent = ({
       {content}
       {customizableUI && (
         <div style={{ padding: '8px 12px', pointerEvents: 'auto' }}>
-          <Button
-            className="modular-ui-button"
-            label="Event"
-            onClick={(e) => {
-              e.stopPropagation();
-              // Send message to parent window to create event from annotation
-              const annotationData = {
-                id: annotation.Id,
-                contents: annotation.getContents(),
-                author: annotation['Author'],
-                pageNumber: annotation.getPageNumber(),
-                dateCreated: annotation['DateCreated'],
-                dateModified: annotation['DateModified'],
-              };
-
-              window.parent.postMessage({
-                type: 'createEventFromAnnotation',
-                annotation: annotationData,
-              }, '*');
-            }}
-          />
+          <LinkedEntitiesDisplay annotation={annotation} />
         </div>
       )}
 

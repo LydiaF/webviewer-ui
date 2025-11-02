@@ -111,6 +111,8 @@ const DataElements = {
   // Overlays
   SCALE_OVERLAY_CONTAINER: 'scaleOverlayContainer',
   MEASUREMENT_OVERLAY: 'measurementOverlay',
+  LINKED_ENTITY_INDICATOR_CONTAINER: 'linkedEntityIndicatorContainer',
+  LINKED_ENTITIES_PANEL: 'linkedEntitiesPanel',
   VIEW_CONTROLS_OVERLAY: 'viewControlsOverlay',
   VIEW_CONTROLS_OVERLAY_BUTTON: 'viewControlsButton',
   SEARCH_OVERLAY: 'searchOverlay',

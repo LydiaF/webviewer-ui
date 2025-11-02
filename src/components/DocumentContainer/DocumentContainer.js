@@ -382,6 +382,10 @@ class DocumentContainer extends React.PureComponent {
                 dataElement={DataElements.MEASUREMENT_OVERLAY}
                 onOpenHook={useOnCountMeasurementAnnotationSelected}
               />
+              <LazyLoadWrapper
+                Component={LazyLoadComponents.LinkedEntityIndicatorContainer}
+                dataElement={DataElements.LINKED_ENTITY_INDICATOR_CONTAINER}
+              />
               <div
                 className="footer"
                 style={footerStyle}

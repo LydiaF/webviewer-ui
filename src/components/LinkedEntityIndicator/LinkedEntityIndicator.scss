@@ -1,0 +1,106 @@
+.LinkedEntityIndicator {
+  position: absolute;
+  pointer-events: auto;
+  z-index: 1000;
+
+  .linked-entity-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    cursor: pointer;
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+  }
+
+  .linked-entity-count {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    background-color: #2563eb;
+    border-radius: 50%;
+    border: 2px solid white;
+    font-size: 9px;
+    font-weight: 600;
+    color: white;
+    line-height: 1;
+    z-index: 10002;
+  }
+
+  .linked-entity-tooltip {
+    position: absolute;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    min-width: 200px;
+    max-width: 300px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1001;
+    pointer-events: auto;
+
+    // Ensure tooltip is visible even during initial positioning
+    opacity: 1;
+    visibility: visible;
+
+    .linked-entity-tooltip-header {
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #374151;
+      border-bottom: 1px solid #e5e7eb;
+      background: #f9fafb;
+      border-radius: 6px 6px 0 0;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .linked-entity-tooltip-list {
+      padding: 4px 0;
+    }
+
+    .linked-entity-tooltip-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: background-color 0.15s ease;
+
+      &:hover {
+        background-color: #f3f4f6;
+      }
+
+      &:active {
+        background-color: #e5e7eb;
+      }
+
+      .linked-entity-tooltip-item-type {
+        font-size: 10px;
+        color: #6b7280;
+        text-transform: uppercase;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+      }
+
+      .linked-entity-tooltip-item-title {
+        font-size: 13px;
+        color: #111827;
+        font-weight: 500;
+      }
+    }
+  }
+}
+

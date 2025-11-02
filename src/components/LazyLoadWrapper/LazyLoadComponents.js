@@ -3,6 +3,7 @@ import { lazy } from 'react';
 // Overlays
 const ScaleOverlayContainer = lazy(() => import('components/ScaleOverlay/ScaleOverlayContainer'));
 const MeasurementOverlay = lazy(() => import('components/MeasurementOverlay'));
+const LinkedEntityIndicatorContainer = lazy(() => import('components/LinkedEntityIndicator/LinkedEntityIndicatorContainer'));
 const ViewControlsOverlay = lazy(() => import('components/ViewControlsOverlay'));
 const MenuOverlay = lazy(() => import('components/MenuOverlay'));
 const ZoomOverlay = lazy(() => import('components/ZoomOverlay'));
@@ -91,6 +92,7 @@ const LazyLoadComponents = {
   AlignmentPopup,
   DocumentCropPopup,
   MeasurementOverlay,
+  LinkedEntityIndicatorContainer,
   ScaleOverlayContainer,
   ViewControlsOverlay,
   MenuOverlay,

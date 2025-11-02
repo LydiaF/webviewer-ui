@@ -87,7 +87,7 @@ const tabletBreakpoint = window.matchMedia('(min-width: 641px) and (max-width: 9
 
 const propTypes = {
   removeEventHandlers: PropTypes.func.isRequired,
-  initialDirection: PropTypes.oneOf(['ltr','rtl']),
+  initialDirection: PropTypes.oneOf(['ltr', 'rtl']),
 };
 
 const App = ({ removeEventHandlers, initialDirection }) => {
@@ -450,7 +450,7 @@ const App = ({ removeEventHandlers, initialDirection }) => {
       case panelNames.TEXT_EDITING:
         return <TextEditingPanel dataElement={dataElement} />;
       case panelNames.CHANGE_LIST:
-        return <ComparePanel dataElement={dataElement}/>;
+        return <ComparePanel dataElement={dataElement} />;
       case panelNames.STYLE:
         return <LazyLoadWrapper Component={LazyLoadComponents.StylePanel} dataElement={dataElement} />;
       case panelNames.REDACTION:
@@ -518,9 +518,9 @@ const App = ({ removeEventHandlers, initialDirection }) => {
         {customizableUI && <TabsHeader />}
         <TopHeader />
         {isSpreadsheetEditorModeEnabled &&
-          <LazyLoadWrapper Component={LazyLoadComponents.FormulaBar} dataElement={DataElements.FORMULA_BAR}/>}
+          <LazyLoadWrapper Component={LazyLoadComponents.FormulaBar} dataElement={DataElements.FORMULA_BAR} />}
         <div className="content">
-          <LeftHeader/>
+          <LeftHeader />
           {!customizableUI && <LazyLoadWrapper
             Component={LazyLoadComponents.LeftPanel}
             dataElement={DataElements.LEFT_PANEL}
@@ -566,8 +566,8 @@ const App = ({ removeEventHandlers, initialDirection }) => {
               <ComparePanel />
             </RightPanel>
           </MultiViewerWrapper>}
-          <RightHeader/>
-          <BottomHeader/>
+          <RightHeader />
+          <BottomHeader />
           {!isMultiViewerMode && <DocumentContainer />}
         </div>
         <LazyLoadWrapper
@@ -719,7 +719,7 @@ const App = ({ removeEventHandlers, initialDirection }) => {
             <LazyLoadWrapper
               Component={LazyLoadComponents.HeaderFooterControlsOverlay}
               dataElement={DataElements.HEADER_FOOTER_CONTROLS_OVERLAY}
-              onOpenHook={useOnHeaderFooterUpdate}/>
+              onOpenHook={useOnHeaderFooterUpdate} />
             <LazyLoadWrapper
               Component={LazyLoadComponents.HeaderFooterOptionsModal}
               dataElement={DataElements.HEADER_FOOTER_OPTIONS_MODAL}
